@@ -11,8 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This directory contains two components:
 
-- [EconData](): R package  to automatically download and prepare various publicly-available economic data sets.
-- [DataRepo]() A repository of prepared data sets that were created by the EconData package.
+- [EconData](https://github.com/setzler/EconData/tree/master/EconData): R package to automatically download and prepare various publicly-available economic data sets from source.
+- [DataRepo](https://github.com/setzler/EconData/tree/master/DataRepo) A repository of prepared data sets that were created by the EconData package.
 
 
 ```{r echo=T, eval=F}
@@ -29,23 +29,27 @@ The included data sets are listed below.
 
 ### Download and clean the Census CBP
 
-CBP data is managed by the `getCBP()` function. The arguments are:
+[Clean CBP data sets are located here.](https://github.com/setzler/EconData/tree/master/DataRepo).
 
-- `years`: years of CBP data to download (integer vector). Supported year range is 2002 to 2017.
-- `aggregation`: Geography and industry level of variation. `"state_total"` means state total,  `"state_industry"` means state-by-industry total. Other options are `"county_total"`, `"county_industry"`, `"national_total"`, and `"national_industry"`.
+Census County Business Patterns (CBP) data is managed by the `getCBP()` function. The arguments are:
+
+- `years`: years of CBP data to download (integer vector). Supported year range is 2001 to 2017.
+- `location`: Can be `"county"`, `"state"`, or `"national"` (character).
+- `industry`: Number of digits used in the NAICS code. `0` indicates use all industries.
 - `LFO`: Choose a legal form of organization (LFO). Options include `'C'` for C-corporations, `'S'` for S-corporations, `'P'` for partnerships. Default is `'-'`, which means to use all LFO types.
 
 The resulting data set includes the variables `year, employment_march, payroll_quarter1, establishments` as well as fips codes and industry codes corresponding to the `aggregation` choice.
 
 
+
 ### Example
 
-Here, we download and clean the CBP files during 2001 - 2017. They are saved to the `DataRepo/` directory as `CBP_state_total.csv`.
+Here, we download and clean the CBP files during 2001 - 2017. They are saved to the `DataRepo/CensusCBP` directory as `CBP_state_total.csv`.
 
 ```{r echo=T, eval=T}
 
-CBP <- getCBP(years = 2001:2017, aggregation = "state_total") 
-write.csv(CBP,file="~/github/EconData/DataRepo/CBP_state_total.csv", row.names=F)
+CBP <- getCBP(years = 2001:2017, location = "state", industry = 0) 
+write.csv(CBP,file="~/github/EconData/DataRepo/CensusCBP/CBP_state_total.csv", row.names=F)
 print(CBP[])
 
 ```
@@ -59,7 +63,6 @@ library(data.table)
 library(ggplot2)
 library(scales)
 
-CBP <- setDT(read.csv("~/github/EconData/DataRepo/CBP_state_total.csv"))
 CBP[, state := '']
 CBP[state_fips==6, state := 'California']
 CBP[state_fips==12, state := 'Florida']
@@ -73,12 +76,12 @@ gg <- ggplot(aes(x=year,y=employment_march/1e6,color=state,linetype=state),data=
   labs(x="Year", y="March Employment (millions)",title="Census CBP",color="State",linetype="State") +
   scale_x_continuous(breaks= pretty_breaks()) +
   scale_y_continuous(breaks= pretty_breaks())
-ggsave(gg,file='EconData/inst/CBP_state_employment.png',width=8,height=4)
+ggsave(gg,file='EconData/inst/CensusCBP/CBP_state_employment.png',width=8,height=5)
 
 
 ```
 
-![](EconData/inst/CBP_state_employment.png)
+![](EconData/inst/CensusCBP/CBP_state_employment.png)
 
 
 

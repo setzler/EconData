@@ -2,12 +2,15 @@ EconData
 ================
 Created by Bradley Setzler, University of Chicago
 
-This directory contains two components:
+This directory contains two
+    components:
 
-  - [EconData](): R package to automatically download and prepare
-    various publicly-available economic data sets.
-  - [DataRepo]() A repository of prepared data sets that were created by
-    the EconData package.
+  - [EconData](https://github.com/setzler/EconData/tree/master/EconData):
+    R package to automatically download and prepare various
+    publicly-available economic data sets from source.
+  - [DataRepo](https://github.com/setzler/EconData/tree/master/DataRepo)
+    A repository of prepared data sets that were created by the EconData
+    package.
 
 <!-- end list -->
 
@@ -25,14 +28,18 @@ The included data sets are listed below.
 
 ### Download and clean the Census CBP
 
-CBP data is managed by the `getCBP()` function. The arguments are:
+[Clean CBP data sets are located
+here.](https://github.com/setzler/EconData/tree/master/DataRepo).
+
+Census County Business Patterns (CBP) data is managed by the `getCBP()`
+function. The arguments are:
 
   - `years`: years of CBP data to download (integer vector). Supported
-    year range is 2002 to 2017.
-  - `aggregation`: Geography and industry level of variation.
-    `"state_total"` means state total, `"state_industry"` means
-    state-by-industry total. Other options are `"county_total"`,
-    `"county_industry"`, `"national_total"`, and `"national_industry"`.
+    year range is 2001 to 2017.
+  - `location`: Can be `"county"`, `"state"`, or `"national"`
+    (character).
+  - `industry`: Number of digits used in the NAICS code. `0` indicates
+    use all industries.
   - `LFO`: Choose a legal form of organization (LFO). Options include
     `'C'` for C-corporations, `'S'` for S-corporations, `'P'` for
     partnerships. Default is `'-'`, which means to use all LFO types.
@@ -44,33 +51,33 @@ codes corresponding to the `aggregation` choice.
 ### Example
 
 Here, we download and clean the CBP files during 2001 - 2017. They are
-saved to the `DataRepo/` directory as
+saved to the `DataRepo/CensusCBP` directory as
     `CBP_state_total.csv`.
 
 ``` r
-CBP <- getCBP(years = 2001:2017, aggregation = "state_total") 
+CBP <- getCBP(years = 2001:2017, location = "state", industry = 0) 
 ```
 
-    ## INFO [2020-05-17 15:49:30] downloading CBP for year 2001 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:31] downloading CBP for year 2002 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:32] downloading CBP for year 2003 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:33] downloading CBP for year 2004 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:34] downloading CBP for year 2005 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:35] downloading CBP for year 2006 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:36] downloading CBP for year 2007 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:37] downloading CBP for year 2008 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:38] downloading CBP for year 2009 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:39] downloading CBP for year 2010 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:42] downloading CBP for year 2011 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:44] downloading CBP for year 2012 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:46] downloading CBP for year 2013 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:48] downloading CBP for year 2014 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:50] downloading CBP for year 2015 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:53] downloading CBP for year 2016 aggregated by state_total.
-    ## INFO [2020-05-17 15:49:55] downloading CBP for year 2017 aggregated by state_total.
+    ## INFO [2020-05-17 18:23:19] downloading CBP for year 2001 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:20] downloading CBP for year 2002 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:21] downloading CBP for year 2003 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:22] downloading CBP for year 2004 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:23] downloading CBP for year 2005 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:24] downloading CBP for year 2006 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:25] downloading CBP for year 2007 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:26] downloading CBP for year 2008 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:27] downloading CBP for year 2009 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:28] downloading CBP for year 2010 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:30] downloading CBP for year 2011 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:32] downloading CBP for year 2012 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:34] downloading CBP for year 2013 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:36] downloading CBP for year 2014 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:38] downloading CBP for year 2015 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:41] downloading CBP for year 2016 aggregated by location='state' and industry digits=0.
+    ## INFO [2020-05-17 18:23:44] downloading CBP for year 2017 aggregated by location='state' and industry digits=0.
 
 ``` r
-write.csv(CBP,file="~/github/EconData/DataRepo/CBP_state_total.csv", row.names=F)
+write.csv(CBP,file="~/github/EconData/DataRepo/CensusCBP/CBP_state_total.csv", row.names=F)
 print(CBP[])
 ```
 
@@ -94,7 +101,6 @@ library(data.table)
 library(ggplot2)
 library(scales)
 
-CBP <- setDT(read.csv("~/github/EconData/DataRepo/CBP_state_total.csv"))
 CBP[, state := '']
 CBP[state_fips==6, state := 'California']
 CBP[state_fips==12, state := 'Florida']
@@ -108,7 +114,7 @@ gg <- ggplot(aes(x=year,y=employment_march/1e6,color=state,linetype=state),data=
   labs(x="Year", y="March Employment (millions)",title="Census CBP",color="State",linetype="State") +
   scale_x_continuous(breaks= pretty_breaks()) +
   scale_y_continuous(breaks= pretty_breaks())
-ggsave(gg,file='EconData/inst/CBP_state_employment.png',width=8,height=4)
+ggsave(gg,file='EconData/inst/CensusCBP/CBP_state_employment.png',width=8,height=5)
 ```
 
-![](EconData/inst/CBP_state_employment.png)
+![](EconData/inst/CensusCBP/CBP_state_employment.png)
