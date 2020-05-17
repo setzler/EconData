@@ -7,6 +7,6 @@ Maintainer: Bradley Setzler <bradley.setzler@gmail.com>
 Description: R package to automatically download and clean publicly-available economics data
 License: MIT
 Encoding: UTF-8
-Imports: data.table, futile.logger, checkmate, ggplot2, scales, tidyr, readstata13, magrittr, openxlsx, stringr
+Imports: data.table, futile.logger, checkmate, ggplot2, scales, tidyr, readstata13, openxlsx, stringr
 LazyData: true
 RoxygenNote: 7.0.0

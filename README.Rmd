@@ -1,0 +1,84 @@
+---
+title: "EconData"
+author: Created by Bradley Setzler, University of Chicago
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+This directory contains two components:
+
+- [EconData](): R package  to automatically download and prepare various publicly-available economic data sets.
+- [DataRepo]() A repository of prepared data sets that were created by the EconData package.
+
+
+```{r echo=T, eval=F}
+devtools::install_github("setzler/EconData/EconData")
+```
+```{r echo=T, eval=T}
+library(EconData)
+```
+
+
+The included data sets are listed below.
+
+# 1. Census CBP
+
+### Download and clean the Census CBP
+
+CBP data is managed by the `getCBP()` function. The arguments are:
+
+- `years`: years of CBP data to download (integer vector). Supported year range is 2002 to 2017.
+- `aggregation`: Geography and industry level of variation. `"state_total"` means state total,  `"state_industry"` means state-by-industry total. Other options are `"county_total"`, `"county_industry"`, `"national_total"`, and `"national_industry"`.
+- `LFO`: Choose a legal form of organization (LFO). Options include `'C'` for C-corporations, `'S'` for S-corporations, `'P'` for partnerships. Default is `'-'`, which means to use all LFO types.
+
+The resulting data set includes the variables `year, employment_march, payroll_quarter1, establishments` as well as fips codes and industry codes corresponding to the `aggregation` choice.
+
+
+### Example
+
+Here, we download and clean the CBP files during 2001 - 2017. They are saved to the `DataRepo/` directory as `CBP_state_total.csv`.
+
+```{r echo=T, eval=T}
+
+CBP <- getCBP(years = 2001:2017, aggregation = "state_total") 
+write.csv(CBP,file="~/github/EconData/DataRepo/CBP_state_total.csv", row.names=F)
+print(CBP[])
+
+```
+
+
+Let's plot the resulting data for the 5 most populous states:
+
+```{r echo=T, eval=T}
+
+library(data.table)
+library(ggplot2)
+library(scales)
+
+CBP <- setDT(read.csv("~/github/EconData/DataRepo/CBP_state_total.csv"))
+CBP[, state := '']
+CBP[state_fips==6, state := 'California']
+CBP[state_fips==12, state := 'Florida']
+CBP[state_fips==17, state := 'Illinois']
+CBP[state_fips==36, state := 'New York']
+CBP[state_fips==48, state := 'Texas']
+
+gg <- ggplot(aes(x=year,y=employment_march/1e6,color=state,linetype=state),data=CBP[state != '']) + 
+  geom_line() +
+  theme_bw(base_size=14) + 
+  labs(x="Year", y="March Employment (millions)",title="Census CBP",color="State",linetype="State") +
+  scale_x_continuous(breaks= pretty_breaks()) +
+  scale_y_continuous(breaks= pretty_breaks())
+ggsave(gg,file='EconData/inst/CBP_state_employment.png',width=8,height=4)
+
+
+```
+
+![](EconData/inst/CBP_state_employment.png)
+
+
+
