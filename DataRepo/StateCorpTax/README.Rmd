@@ -33,7 +33,7 @@ write.csv(CIT,file="StateCorpTax.csv", row.names=F)
 
 ```
 
-The function `getCorpTax()` does the following:
+The function `getCorpTaxSources()` does the following:
 
 - **Our rates:** repeats `getStateCorpTax()` above,
 - **Giroud-Rauh:** downloads the 1976-2012 tax rates from Giroud & Rauh (2020), extracts and converts them from Stata .dta to .csv, saving to GiroudRauh_1976_2012.csv.
@@ -42,7 +42,7 @@ The function `getCorpTax()` does the following:
 
 ```{r echo=T, eval=F, warning=FALSE, comment=FALSE, warning=FALSE}
 
-getCorpTax(output_path = "~/github/EconData/DataRepo/StateCorpTax/")
+getCorpTaxSources()
 
 ```
 
@@ -51,7 +51,7 @@ Here are the resulting corporate tax rates for Illinois during 2000-2020:
 ```{r echo=T, eval=T, warning=FALSE, comment=FALSE, warning=FALSE}
 
 CIT <- setDT(read.csv(file="StateCorpTax.csv"))
-kable(CIT[state=='Illinois'])
+kable(CIT[state_name=='Illinois'])
 
 
 ```
@@ -72,18 +72,19 @@ Let's compare the corrected corporate tax rates to those of Giroud & Rauh (2020,
 ## load Giroud-Rauh data
 GR <- setDT(read.csv(file="GiroudRauh_1976_2012.csv"))
 setnames(GR,'cit','cit_GR')
-flag_states <- GR[cit_flag!=0,unique(state)]
-GR <- GR[!(state %in% flag_states)] # drop Michigan, Ohio, Texas, and Washington
+flag_states <- GR[cit_flag!=0,unique(state_name)]
+print(flag_states)
+GR <- GR[!(state_name %in% flag_states)] # drop flagged states
 
 ## merge GR data with my data
 dd <- setDT(read.csv(file="StateCorpTax.csv"))
-dd <- merge(dd,GR,by=c('state','year'))
-dd <- merge(dd, dd[,list(state,year=year+1,cit_lag = cit,cit_GR_lag = cit_GR)],by=c('state','year'))
+dd <- merge(dd,GR,by=c('state_name','year'))
+dd <- merge(dd, dd[,list(state_name,year=year+1,cit_lag = cit,cit_GR_lag = cit_GR)],by=c('state_name','year'))
 dd[, cit_diff := cit - cit_lag]
 dd[, cit_GR_diff := cit_GR - cit_GR_lag]
 change_share <- dd[,mean((cit_diff != 0) | (cit_GR_diff != 0))]
-dd <- dd[((cit_diff != 0) | (cit_GR_diff != 0)),list(state,year,cit_diff,cit_GR_diff)]
-sprintf("The tax rate changed in %s (%s percent) of state-year observations.",nrow(dd),round(change_share*100,1))
+dd <- dd[((cit_diff != 0) | (cit_GR_diff != 0)),list(state_name,year,cit_diff,cit_GR_diff)]
+sprintf("The tax rate changed in %s (%s percent) of the state-year observations.",nrow(dd),round(change_share*100,1))
 
 ## find those that are substantially different
 similar <- dd[(abs(cit_diff - cit_GR_diff) < .1)]

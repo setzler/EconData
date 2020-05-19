@@ -91,6 +91,7 @@ getStateCorpTax <- function(){
   }
   dd2[,state := trimws(state)]
   dd2[, cit := round(cit,3)]
+  dd2[state=='Delaware (3)', state := 'Delaware']
   
   # manual corrections
   for(zero_state in c('Nevada','South Dakota','Washington','Wyoming')){
@@ -149,6 +150,7 @@ getStateCorpTax <- function(){
   dd2[year==2000 & state=='New York', cit := 8.5] # mid-year phase in
 
   dd2 <- dd2[order(state,year)]
+  setnames(dd2,'state','state_name')
 
   return(dd2)
 
@@ -158,14 +160,18 @@ getStateCorpTax <- function(){
 #' Download and prepare corporate tax rate data from various sources
 #' @params output_path (character)
 #' @export
-getCorpTax <- function(output_path = "~/github/EconData/DataRepo/StateCorpTax/"){
-  
+getCorpTaxSources <- function(output_path = "~/github/EconData/DataRepo/StateCorpTax/", misc_path = "~/github/EconData/DataRepo/Miscellaneous/"){
+
   temp_path <- tempdir()
   
   # my version
   destfile <- sprintf("%sStateCorpTax.csv",output_path)
   if(!file.exists(destfile)){
-    write.csv(getStateCorpTax(), file=destfile, row.names=F)
+    rates <- getStateCorpTax()
+    state_fips_file <- setDT(read.csv(file=sprintf("%sstate_fips_crosswalk.csv",misc_path)))
+    rates <- merge(state_fips_file,rates,by='state_name')
+    rates <- rates[,.(state_fips,state_name,year,cit)]
+    write.csv(rates, file=destfile, row.names=F)
   }
   
   # Giroud & Rauh (2020, JPE) data
@@ -175,7 +181,7 @@ getCorpTax <- function(output_path = "~/github/EconData/DataRepo/StateCorpTax/")
     download.file(Giroud_Rauh,destfile)
     unzip(zipfile=destfile,exdir=temp_path)
     GR <- setDT(read.dta13(sprintf("%s/JPE_Data_Appendix/stata_tax_data.dta",temp_path)))
-    GR <- GR[,list(state=state_name,state_fips=fips,year,cit,cit_flag)][order(state,year)]
+    GR <- GR[,list(state_fips=fips,state_name,year,cit,cit_flag)][order(state_name,year)]
     write.csv(GR, file = sprintf("%sGiroudRauh_1976_2012.csv",output_path), row.names = F)
   }
   
@@ -184,6 +190,12 @@ getCorpTax <- function(output_path = "~/github/EconData/DataRepo/StateCorpTax/")
   destfile = sprintf("%sTaxFoundation_2000_2014.xlsx",output_path)
   if(!file.exists(destfile)){
     download.file(TF_legacy,destfile)
+  }
+  
+  TF_newer <- 'https://www.taxpolicycenter.org/sites/default/files/statistics/spreadsheet/state_corporate_income_tax_3.xlsx'
+  dest_file= sprintf("%sTaxFoundation_2002_2020.xlsx",output_path)
+  if(!file.exists(dest_file)){
+    download.file(TF_newer,dest_file)
   }
   
 
