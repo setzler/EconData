@@ -33,7 +33,6 @@ saved to the `DataRepo/CensusCBP` directory as `CBP_state_total.csv`.
 library(EconData)
 CBP <- getCBP(years = 2001:2017, location = "state", industry = 0) 
 write.csv(CBP,file="~/github/EconData/DataRepo/CensusCBP/CBP_state_total.csv", row.names=F)
-kable(CBP[1:5])
 ```
 
 Let’s plot the resulting data for the 5 most populous
@@ -41,15 +40,20 @@ states:
 
 ``` r
 CBP <- setDT(read.csv(file="~/github/EconData/DataRepo/CensusCBP/CBP_state_total.csv"))
-CBP[, state := '']
-CBP[state_fips==6, state := 'California']
-CBP[state_fips==12, state := 'Florida']
-CBP[state_fips==17, state := 'Illinois']
-CBP[state_fips==36, state := 'New York']
-CBP[state_fips==48, state := 'Texas']
+kable(CBP[1:5])
+```
 
-gg <- ggplot(aes(x=year,y=employment_march/1e6,color=state,linetype=state),data=CBP[state != '']) + 
-  geom_line() +
+| state\_fips | state\_name | year | employment\_march | establishments | payroll\_quarter1 |
+| ----------: | :---------- | ---: | ----------------: | -------------: | ----------------: |
+|           1 | Alabama     | 2001 |           1620952 |          99261 |       10962678000 |
+|           1 | Alabama     | 2002 |           1581117 |          99931 |       11054027000 |
+|           1 | Alabama     | 2003 |           1597529 |          99838 |       11453340000 |
+|           1 | Alabama     | 2004 |           1629141 |         100802 |       11846970000 |
+|           1 | Alabama     | 2005 |           1667526 |         101976 |       12605884000 |
+
+``` r
+gg <- ggplot(aes(x=year,y=employment_march/1e6,color=state_name,linetype=state_name),data=CBP[state_name %in% c('California','Florida','Illinois','New York','Texas')]) + 
+  geom_line(size = 1.5) +
   theme_bw(base_size=14) + 
   labs(x="Year", y="March Employment (millions)",title="Census CBP",color="State",linetype="State") +
   scale_x_continuous(breaks= pretty_breaks()) +

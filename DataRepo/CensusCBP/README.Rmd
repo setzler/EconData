@@ -43,7 +43,6 @@ Here, we download and clean the CBP files during 2001 - 2017. They are saved to 
 library(EconData)
 CBP <- getCBP(years = 2001:2017, location = "state", industry = 0) 
 write.csv(CBP,file="~/github/EconData/DataRepo/CensusCBP/CBP_state_total.csv", row.names=F)
-kable(CBP[1:5])
 
 ```
 
@@ -53,15 +52,10 @@ Let's plot the resulting data for the 5 most populous states:
 ```{r echo=T, eval=T}
 
 CBP <- setDT(read.csv(file="~/github/EconData/DataRepo/CensusCBP/CBP_state_total.csv"))
-CBP[, state := '']
-CBP[state_fips==6, state := 'California']
-CBP[state_fips==12, state := 'Florida']
-CBP[state_fips==17, state := 'Illinois']
-CBP[state_fips==36, state := 'New York']
-CBP[state_fips==48, state := 'Texas']
+kable(CBP[1:5])
 
-gg <- ggplot(aes(x=year,y=employment_march/1e6,color=state,linetype=state),data=CBP[state != '']) + 
-  geom_line() +
+gg <- ggplot(aes(x=year,y=employment_march/1e6,color=state_name,linetype=state_name),data=CBP[state_name %in% c('California','Florida','Illinois','New York','Texas')]) + 
+  geom_line(size = 1.5) +
   theme_bw(base_size=14) + 
   labs(x="Year", y="March Employment (millions)",title="Census CBP",color="State",linetype="State") +
   scale_x_continuous(breaks= pretty_breaks()) +
