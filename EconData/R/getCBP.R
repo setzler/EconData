@@ -57,6 +57,7 @@ getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-")
   ## loop over years
   dd_output <- data.table()
   for (year in years) {
+    
     ## set year-specific parameters
     year_sub <- substr(year, 3, 4)
     varnames <- copy(main_varnames)
@@ -119,7 +120,7 @@ getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-")
       ddin <- ddin[grepl(search_for, naics) & naics != "------"]
       ddin[, naics := substr(naics, 1, 2)]
     }
-    if (industry %in% c(2,3,4)) {
+    if (industry %in% c(3,4)) {
       search_for <- paste(rep("/", 6 - industry), collapse = "")
       no_search_for <- paste(rep("/", 6 - industry + 1), collapse = "")
       ddin <- ddin[grepl(search_for, naics) & !grepl(no_search_for, naics)]
