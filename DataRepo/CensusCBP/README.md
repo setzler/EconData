@@ -30,6 +30,7 @@ Here, we download and clean the CBP files during 2001 - 2017. They are
 saved to the `DataRepo/CensusCBP` directory as `CBP_state_total.csv`.
 
 ``` r
+library(EconData)
 CBP <- getCBP(years = 2001:2017, location = "state", industry = 0) 
 write.csv(CBP,file="~/github/EconData/DataRepo/CensusCBP/CBP_state_total.csv", row.names=F)
 kable(CBP[1:5])
