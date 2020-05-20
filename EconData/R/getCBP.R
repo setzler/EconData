@@ -1,11 +1,113 @@
 
-#' Download and prepare CBP data
+#' Download CBP data
+#' @params years (integer) any integer between 2000 and 2017 is supported.
+#' @params location (character) options are "county", "state", "national".
+#' @export
+downloadCBP <- function(years = 2017, location = "national", output_path) {
+  
+  ## check inputs
+  if (!(location %in% c("national", "state", "county"))) {
+    stop(sprintf("location=%s is not available.", location))
+  }
+  for (year in years) {
+    if (year < 2001 | year > 2017) {
+      stop(sprintf("year=%s is not yet available.", year))
+    }
+  }
+  
+  ## global parameters=
+  if (location == "state") {
+    agg <- "st"
+    main_varnames <- c("fipstate", "naics", "emp", "est", "qp1")
+    uppercase_years <- 2015
+    LFO_years <- 2010:2017
+    upperC_years <- 0
+  }
+  if (location == "county") {
+    agg <- "co"
+    main_varnames <- c("fipstate", "fipscty", "naics", "emp", "est", "qp1")
+    uppercase_years <- 2015
+    LFO_years <- 0
+    upperC_years <- c(2002, 2007:2008)
+  }
+  if (location == "national") {
+    agg <- "us"
+    main_varnames <- c("naics", "emp", "est", "qp1")
+    uppercase_years <- c(2006, 2015)
+    upperC_years <- 2002:2009
+    LFO_years <- 2008:2017
+  }
+  
+
+  ## loop over years
+  for (year in years) {
+    
+    ## set year-specific parameters
+    year_sub <- substr(year, 3, 4)
+    varnames <- copy(main_varnames)
+    if (year %in% LFO_years) {
+      varnames <- c(varnames, "lfo")
+    }
+    if (year %in% uppercase_years) {
+      varnames <- toupper(varnames)
+    }
+    if (year %in% upperC_years) {
+      extractfile <- sprintf("%s/Cbp%s%s.txt", output_path, year_sub, agg)
+    } else {
+      extractfile <- sprintf("%s/cbp%s%s.txt", output_path, year_sub, agg)
+    }
+    
+    ## set up download from CBP website
+    url <- sprintf("https://www2.census.gov/programs-surveys/cbp/datasets/%s/cbp%s%s.zip", year, year_sub, agg)
+    destfile <- sprintf("%s/CBP_%s.zip", output_path, year)
+    if (location == "national" & year <= 2007) {
+      url <- sprintf("https://www2.census.gov/programs-surveys/cbp/datasets/%s/cbp%s%s.txt", year, year_sub, agg)
+      destfile <- sprintf("%s/CBP_%s.txt", output_path, year)
+    }
+    
+    ## download
+    flog.info("downloading CBP for year %s aggregated by location='%s'.", year, location)
+    download.file(url, destfile)
+    
+    ## extract
+    if (location == "national" & year <= 2007) {
+      ddin <- setDT(fread(destfile, select = varnames))
+      file.remove(destfile)
+    } else {
+      unzip(zipfile = destfile, exdir = output_path)
+      file.remove(destfile)
+      ddin <- setDT(fread(extractfile, select = varnames))
+      file.remove(extractfile)
+    }
+    
+    ## clean data
+    setnames(ddin, tolower(names(ddin)))
+    ddin[, qp1 := qp1 * 1e3]
+    setnames(ddin, c("emp", "qp1", "est"), c("employment_march", "payroll_quarter1", "establishments"))
+    if ("fipstate" %in% names(ddin)) {
+      setnames(ddin, "fipstate", "state_fips")
+    }
+    if ("fipscty" %in% names(ddin)) {
+      setnames(ddin, "fipscty", "county_fips")
+    }
+    
+    ddin[employment_march == 0, employment_march := NA]
+    ddin[payroll_quarter1 == 0, payroll_quarter1 := NA]
+    
+    saveRDS(ddin, file = sprintf("%s/CBP_%s_%s.rds", output_path, location, year), compress=F)
+    
+  }
+  
+}
+
+
+#' Prepare CBP data
 #' @params years (integer) any integer between 2000 and 2017 is supported.
 #' @params location (character) options are "county", "state", "national".
 #' @params industry (integer) options are 0, 2, 3, 4, 6.
 #' @params LFO (character) legal form of organization.
 #' @export
-getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-") {
+getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-", input_path, output_path) {
 
   ## check inputs
   if (!(location %in% c("national", "state", "county"))) {
@@ -21,7 +123,6 @@ getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-")
   }
 
   ## global parameters
-  path <- tempdir()
   if (location == "state") {
     agg <- "st"
     main_varnames <- c("fipstate", "naics", "emp", "est", "qp1")
@@ -57,56 +158,7 @@ getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-")
   ## loop over years
   dd_output <- data.table()
   for (year in years) {
-    
-    ## set year-specific parameters
-    year_sub <- substr(year, 3, 4)
-    varnames <- copy(main_varnames)
-    if (year %in% LFO_years) {
-      varnames <- c(varnames, "lfo")
-    }
-    if (year %in% uppercase_years) {
-      varnames <- toupper(varnames)
-    }
-    if (year %in% upperC_years) {
-      extractfile <- sprintf("%s/Cbp%s%s.txt", path, year_sub, agg)
-    } else {
-      extractfile <- sprintf("%s/cbp%s%s.txt", path, year_sub, agg)
-    }
-
-    ## set up download from CBP website
-    url <- sprintf("https://www2.census.gov/programs-surveys/cbp/datasets/%s/cbp%s%s.zip", year, year_sub, agg)
-    destfile <- sprintf("%s/CBP_%s.zip", path, year)
-    if (location == "national" & year <= 2007) {
-      url <- sprintf("https://www2.census.gov/programs-surveys/cbp/datasets/%s/cbp%s%s.txt", year, year_sub, agg)
-      destfile <- sprintf("%s/CBP_%s.txt", path, year)
-    }
-
-    ## download
-    flog.info("downloading CBP for year %s aggregated by location='%s' and industry digits=%s.", year, location, industry)
-    download.file(url, destfile)
-
-    ## extract
-    if (location == "national" & year <= 2007) {
-      ddin <- setDT(fread(destfile, select = varnames))
-      file.remove(destfile)
-    } else {
-      unzip(zipfile = destfile, exdir = path)
-      file.remove(destfile)
-      ddin <- setDT(fread(extractfile, select = varnames))
-      file.remove(extractfile)
-    }
-    unlink(path)
-
-    ## clean data
-    setnames(ddin, tolower(names(ddin)))
-    ddin[, qp1 := qp1 * 1e3]
-    setnames(ddin, c("emp", "qp1", "est"), c("employment_march", "payroll_quarter1", "establishments"))
-    if ("fipstate" %in% names(ddin)) {
-      setnames(ddin, "fipstate", "state_fips")
-    }
-    if ("fipscty" %in% names(ddin)) {
-      setnames(ddin, "fipscty", "county_fips")
-    }
+    ddin <- setDT(readRDS(file = sprintf("%s/CBP_%s_%s.rds", input_path, location, year)))
     if ("lfo" %in% names(ddin)) {
       ddin <- ddin[lfo == LFO]
       ddin[, lfo := NULL]
@@ -156,11 +208,13 @@ getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-")
       stop("rows are not unique at the provided level of aggregation")
     }
 
-    ddin[employment_march == 0, employment_march := NA]
-    ddin[payroll_quarter1 == 0, payroll_quarter1 := NA]
     ddin$year <- year
     dd_output <- rbind(dd_output, ddin)
   }
 
-  return(dd_output)
+  if (industry > 0) {
+    write.csv(dd_output, file = sprintf("%s/CBP_%s_industry%s.csv", output_path, location, industry), row.names = F)
+  } else {
+    write.csv(dd_output, file = sprintf("%s/CBP_%s_total.csv", output_path, location), row.names = F)
+  }
 }
