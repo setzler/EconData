@@ -1,6 +1,5 @@
-
 library(EconData)
-library(futile.logger)
-
-getCZ(output_path = "~/github/EconData/DataRepo/Miscellaneous/")
-getStateFips(output_path = "~/github/EconData/DataRepo/Miscellaneous/")
+output_path = "~/github/EconData/DataRepo/Miscellaneous/"
+getCZ(output_path)
+getStateFips(output_path)
+getDistances(miles=100, output_path)

@@ -7,33 +7,13 @@ here.](https://github.com/setzler/EconData/tree/master/DataRepo/StateCorpTax/)
 
 ### Download and clean state corporate tax rates
 
-The function `getStateCorpTax()` downloads the corporate tax rates from
-the Tax Foundation, then manually perfects the values based on footnotes
-and secondary documents from the Tax Foundation.
+The function `getStateCorpSouces()` downloads a few sources of corporate
+tax information, then applies the function `getStateCorpTax()` to clean
+the source data and produce the main output file, `StateCorpTax.csv`.
 
 ``` r
 library(EconData)
-CIT <- getStateCorpTax()
-write.csv(CIT,file="StateCorpTax.csv", row.names=F)
-```
-
-The function `getCorpTaxSources()` does the following:
-
-  - **Our rates:** repeats `getStateCorpTax()` above,
-  - **Giroud-Rauh:** downloads the 1976-2012 tax rates from Giroud &
-    Rauh (2020), extracts and converts them from Stata .dta to .csv,
-    saving to GiroudRauh\_1976\_2012.csv.
-  - **Tax Foundation, Current File:** downloads and saves the 2002-2020
-    Tax Foundation current file on corporate tax rates. This is the main
-    file used by `getStateCorpTax()`.
-  - **Tax Foundation, Legacy File:** downloads and saves the 2000-2014
-    Tax Foundation legacy file on corporate tax rates. This file is used
-    for data corrections by `getStateCorpTax()`.
-
-<!-- end list -->
-
-``` r
-getCorpTaxSources()
+getCorpTaxSources(source_path = "~/github/EconData/DataRepo/StateCorpTax/sources/")
 ```
 
 Here are the resulting corporate tax rates for Illinois during
@@ -80,7 +60,7 @@ this comparison, which are Michigan, Ohio, Texas, and Washington.
 
 ``` r
 ## load Giroud-Rauh data
-GR <- setDT(read.csv(file="GiroudRauh_1976_2012.csv"))
+GR <- setDT(read.csv(file="sources/GiroudRauh_1976_2012.csv"))
 setnames(GR,'cit','cit_GR')
 flag_states <- GR[cit_flag!=0,unique(state_name)]
 print(flag_states)
@@ -119,10 +99,10 @@ gg <- ggplot() +
   geom_abline(intercept = 0, slope = 1, linetype='dashed') +
   scale_x_continuous(breaks= pretty_breaks()) +
   scale_y_continuous(breaks= pretty_breaks())
-ggsave(gg,file='GR_tax_change_comparison.png',width=6,height=4)
+ggsave(gg,file='images/GR_tax_change_comparison.png',width=6,height=4)
 ```
 
-![](GR_tax_change_comparison.png)
+![](images/GR_tax_change_comparison.png)
 
 Out of 37 changes in the tax rate reported by at least one of the data
 sets during 2000-2012, the corrected data and the Giroud & Rauh data

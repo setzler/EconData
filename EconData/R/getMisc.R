@@ -36,13 +36,36 @@ getStateFips <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous
   
 }
 
+
+
+#' Download county distances
+#' @params miles
+#' @params output_path (character)
+#' @export
+getCountyDistances <- function(miles=100, output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
+  
+  path <- tempdir()
+  destfile <- sprintf("%s/county_dist.dta", path)
+  county_dist_file <- sprintf("https://data.nber.org/distance/2000/sf1/county/sf12000countydistance%smiles.dta.zip",miles)
+  download.file(county_dist_file,destfile)
+  unzip(zipfile = destfile, exdir = path)
+  county_dist <- setDT(readstata13::read.dta13(file=sprintf("%s/sf12000countydistance%smiles.dta", path, miles)))
+  county_dist <- county_dist[,list(county1,county2,distance=mi_to_county)][order(county1,county2)]
+  write.csv(county_dist,file=sprintf("%sdistances/county_distance_%smiles.csv", output_path, miles),row.names=F)
+  file.remove(destfile)
+  
+  
+}
+
+
+
 #' CZ distance
 #' @params miles
 #' @params output_path (character)
 #' @export
-distanceCZ <- function(miles=100, output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
+buildCZDistance <- function(miles=100, output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
   
-  county_dist <- setDT(read.csv(file=sprintf("%sdistances/county_fips_distance_%smiles.csv", output_path, miles)))
+  county_dist <- setDT(read.csv(file=sprintf("%sdistances/county_distance_%smiles.csv", output_path, miles)))
   county_dist[, county1 := as.character(county1)]
   county_dist[, county2 := as.character(county2)]
   county_dist[, len_county1 := nchar(county1)]
@@ -71,9 +94,9 @@ distanceCZ <- function(miles=100, output_path = "~/github/EconData/DataRepo/Misc
 #' @params miles
 #' @params output_path (character)
 #' @export
-distanceState <- function(miles=100, output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
+buildStateDistance <- function(miles=100, output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
   
-  county_dist <- setDT(read.csv(file=sprintf("%sdistances/county_fips_distance_%smiles.csv", output_path, miles)))
+  county_dist <- setDT(read.csv(file=sprintf("%sdistances/county_distance_%smiles.csv", output_path, miles)))
   county_dist[, county1 := as.character(county1)]
   county_dist[, county2 := as.character(county2)]
   county_dist[, len_county1 := nchar(county1)]
@@ -92,24 +115,15 @@ distanceState <- function(miles=100, output_path = "~/github/EconData/DataRepo/M
 }
 
 
-#' Download county distances
+#' Get all distances
 #' @params miles
 #' @params output_path (character)
 #' @export
-prepareDistances <- function(miles=100, output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
+getDistances <- function(miles=100, output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
   
-  path <- tempdir()
-  destfile <- sprintf("%s/county_dist.dta", path)
-  county_dist_file <- sprintf("https://data.nber.org/distance/2000/sf1/county/sf12000countydistance%smiles.dta.zip",miles)
-  download.file(county_dist_file,destfile)
-  unzip(zipfile = destfile, exdir = path)
-  county_dist <- setDT(readstata13::read.dta13(file=sprintf("%s/sf12000countydistance%smiles.dta", path, miles)))
-  county_dist <- county_dist[,list(county1,county2,distance=mi_to_county)][order(county1,county2)]
-  write.csv(county_dist,file=sprintf("%sdistances/county_distance_%smiles.csv", output_path, miles),row.names=F)
-  file.remove(destfile)
-  
-  distanceCZ(miles=miles, output_path=output_path)
-  distanceState(miles=miles, output_path=output_path)
+  getCountyDistances(miles=miles, output_path=output_path)
+  buildCZDistance(miles=miles, output_path=output_path)
+  buildStateDistance(miles=miles, output_path=output_path)
   
 }
 

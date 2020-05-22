@@ -2,22 +2,12 @@
 
 #' Download and manually correct corporate tax rate data
 #' @export
-getStateCorpTax <- function(){
-  
-  # download Tax Foundation 2002-2020 data
-  # secondary source: 'https://files.taxfoundation.org/legacy/docs/State%20Corporate%20Income%20Tax%20Rates%2C%202000-2014.xlsx'
-  TF_newer <- 'https://www.taxpolicycenter.org/sites/default/files/statistics/spreadsheet/state_corporate_income_tax_3.xlsx'
-  output_path = "~/github/EconData/DataRepo/StateCorpTax/"
-  tax_file= sprintf("%sTaxFoundation_2002_2020.xlsx",output_path)
-  if(!file.exists(tax_file)){
-    download.file(TF_newer,tax_file)
-  }
-  
+getStateCorpTax <- function(source_file){
   
   dd2 <- data.table()
   for(year in c(2002:2008,2010:2020)){
     if(year %in% c(2005,2006)){
-      dd <- setDT(read.xlsx(tax_file,sheet=as.character(year),colNames=T)[2:52,c(1,3)])
+      dd <- setDT(read.xlsx(source_file,sheet=as.character(year),colNames=T)[2:52,c(1,3)])
       setnames(dd,c('state','cit'))
       dd[,state := trimws(state)]
       dd[str_detect(cit,"\\r\\n"), cit := gsub("\\r\\n" , "," ,cit)]
@@ -28,7 +18,7 @@ getStateCorpTax <- function(){
       dd[, cit:= parse_number(str_sub(cit,start,start+4))]
     }
     if(year %in% c(2002:2004,2007:2008,2010:2020)){
-      dd <- setDT(read.xlsx(tax_file,sheet=as.character(year),colNames=T)[2:60,1:2])
+      dd <- setDT(read.xlsx(source_file,sheet=as.character(year),colNames=T)[2:60,1:2])
       setnames(dd,c('state','cit'))
       if(year %in% c(2007)){
         dd <- dd[5:50]
@@ -93,7 +83,8 @@ getStateCorpTax <- function(){
   dd2[, cit := round(cit,3)]
   dd2[state=='Delaware (3)', state := 'Delaware']
   
-  # manual corrections
+  
+  ## manual perfections based on footnotes etc.
   for(zero_state in c('Nevada','South Dakota','Washington','Wyoming')){
     dd2[state==zero_state, cit := 0] # states with no taxes
   }
@@ -114,33 +105,30 @@ getStateCorpTax <- function(){
   dd2[year %in% c(2005,2006) & state=='New York', cit := 7.5] # did not parse correctly
   dd2[year==2008 & state=='New York', cit := 7.1] # differs between Tax Foundation sources
   dd2[year==2006 & state=='Ohio', cit := 8.5] # did not parse correctly
-  dd2[year >= 2010 & state=='Ohio', cit := 0.26]
+  dd2[year >= 2010 & state=='Ohio', cit := 0.26] # see footnotes, this is a gross receipts tax
   dd2[year >= 2008 & year < 2015 & state=='Texas', cit := 1.0] # gross receipts tax in footnotes
   dd2[year >= 2015 & state=='Texas', cit := 0.5] # on Texas govt website
   dd2[year==2007 & state=='Vermont', cit := 8.9] # differs across Tax Foundation files
   dd2[year==2007 & state=='West Virginia', cit := 9.0] # differs between Tax Foundation sources
   dd2[year==2008 & state=='West Virginia', cit := 8.75] # differs between Tax Foundation sources
   dd2[year==2012 & state=='West Virginia', cit := 7.75] # differs between Tax Foundation sources
-  
   # New Jersey is complicated by a surcharge, unclear how to count it
   
   
-  
-  # add 2009 manually since it is not in main Tax Foundation file
+  ## add 2009 manually since it is not in main Tax Foundation file, manually set the handful of changes relative to 2008
   dd2 <- rbind(dd2,copy(dd2[year==2008])[, year := 2009])
   dd2[year==2009 & state=='Ohio', cit := 0.26]
   dd2[year==2009 & state=='Oregon', cit := 7.9]
   dd2[year==2009 & state=='Kansas', cit := 7.05]
   dd2[year==2009 & state=='West Virginia', cit := 8.5] # differs between Tax Foundation sources
   
-  
-  ## add 2001
+  ## add 2001, manually set the handful of changes relative to 2002
   dd2 <- rbind(dd2,copy(dd2[year==2002])[, year := 2001])
   dd2[year==2001 & state=='Idaho', cit := 8.0]
   dd2[year==2001 & state=='Michigan', cit := 2.1]
   dd2[year==2001 & state=='New York', cit := 8.0]
   
-  ## add 2000
+  ## add 2000, manually set the handful of changes relative to 2001
   dd2 <- rbind(dd2,copy(dd2[year==2001])[, year := 2000])
   dd2[year==2000 & state=='Alabama', cit := 5.0]
   dd2[year==2000 & state=='Arizona', cit := 7.968]
@@ -149,30 +137,20 @@ getStateCorpTax <- function(){
   dd2[year==2000 & state=='New Hampshire', cit := 7.25]
   dd2[year==2000 & state=='New York', cit := 8.5] # mid-year phase in
 
+  ## finish
   dd2 <- dd2[order(state,year)]
   setnames(dd2,'state','state_name')
-
   return(dd2)
 
 }
 
 
-#' Download and prepare corporate tax rate data from various sources
-#' @params output_path (character)
+#' Download corporate tax rate data from various sources
+#' @params source_path (character)
 #' @export
-getCorpTaxSources <- function(output_path = "~/github/EconData/DataRepo/StateCorpTax/", misc_path = "~/github/EconData/DataRepo/Miscellaneous/"){
+getCorpTaxSources <- function(source_path){
 
   temp_path <- tempdir()
-  
-  # my version
-  destfile <- sprintf("%sStateCorpTax.csv",output_path)
-  if(!file.exists(destfile)){
-    rates <- getStateCorpTax()
-    state_fips_file <- setDT(read.csv(file=sprintf("%sstate_fips_crosswalk.csv",misc_path)))
-    rates <- merge(state_fips_file,rates,by='state_name')
-    rates <- rates[,.(state_fips,state_name,year,cit)]
-    write.csv(rates, file=destfile, row.names=F)
-  }
   
   # Giroud & Rauh (2020, JPE) data
   Giroud_Rauh <- 'http://www.columbia.edu/~xg2285/JPE_Data.zip'
@@ -182,22 +160,37 @@ getCorpTaxSources <- function(output_path = "~/github/EconData/DataRepo/StateCor
     unzip(zipfile=destfile,exdir=temp_path)
     GR <- setDT(read.dta13(sprintf("%s/JPE_Data_Appendix/stata_tax_data.dta",temp_path)))
     GR <- GR[,list(state_fips=fips,state_name,year,cit,cit_flag)][order(state_name,year)]
-    write.csv(GR, file = sprintf("%sGiroudRauh_1976_2012.csv",output_path), row.names = F)
+    write.csv(GR, file = sprintf("%sGiroudRauh_1976_2012.csv",source_path), row.names = F)
   }
   
   # download Tax Foundation 2000-2014 data
   TF_legacy <- 'https://files.taxfoundation.org/legacy/docs/State%20Corporate%20Income%20Tax%20Rates%2C%202000-2014.xlsx'
-  destfile = sprintf("%sTaxFoundation_2000_2014.xlsx",output_path)
+  destfile = sprintf("%sTaxFoundation_2000_2014.xlsx",source_path)
   if(!file.exists(destfile)){
     download.file(TF_legacy,destfile)
   }
   
   TF_newer <- 'https://www.taxpolicycenter.org/sites/default/files/statistics/spreadsheet/state_corporate_income_tax_3.xlsx'
-  dest_file= sprintf("%sTaxFoundation_2002_2020.xlsx",output_path)
+  dest_file= sprintf("%sTaxFoundation_2002_2020.xlsx",source_path)
   if(!file.exists(dest_file)){
     download.file(TF_newer,dest_file)
   }
   
-
+  # my version
+  # download Tax Foundation 2002-2020 data
+  # secondary source: 'https://files.taxfoundation.org/legacy/docs/State%20Corporate%20Income%20Tax%20Rates%2C%202000-2014.xlsx'
+  TF_newer <- 'https://www.taxpolicycenter.org/sites/default/files/statistics/spreadsheet/state_corporate_income_tax_3.xlsx'
+  tax_file= sprintf("%sTaxFoundation_2002_2020.xlsx",source_path)
+  if(!file.exists(tax_file)){
+    download.file(TF_newer,tax_file)
+  }
+  
+  
+  destfile <- sprintf("%sStateCorpTax_without_fips.csv",source_path)
+  if(!file.exists(destfile)){
+    rates <- getStateCorpTax(source_file = tax_file)
+    write.csv(rates, file=destfile, row.names=F)
+  }
+  
 }
 
