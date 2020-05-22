@@ -105,7 +105,7 @@ prepareDistances <- function(miles=100, output_path = "~/github/EconData/DataRep
   unzip(zipfile = destfile, exdir = path)
   county_dist <- setDT(readstata13::read.dta13(file=sprintf("%s/sf12000countydistance%smiles.dta", path, miles)))
   county_dist <- county_dist[,list(county1,county2,distance=mi_to_county)][order(county1,county2)]
-  write.csv(county_dist,file=sprintf("%sdistances/county_fips_distance_%smiles.csv", output_path, miles),row.names=F)
+  write.csv(county_dist,file=sprintf("%sdistances/county_distance_%smiles.csv", output_path, miles),row.names=F)
   file.remove(destfile)
   
   distanceCZ(miles=miles, output_path=output_path)
