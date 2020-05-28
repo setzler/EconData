@@ -128,3 +128,24 @@ getDistances <- function(miles=100, output_path = "~/github/EconData/DataRepo/Mi
 }
 
 
+
+#' Download and prepare tradables data
+#' @params output_path (character)
+#' @export
+getTradables <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
+  
+  path <- tempdir()
+  url <- "https://scholar.princeton.edu/sites/default/files/atif/files/miansufieconometrica_publicreplicationfiles.zip"
+  destfile <- sprintf("%s/MianSufi.zip", path)
+  unzipped <- sprintf("%s/MianSufiEconometrica_PublicReplicationFiles/miansufieconometrica_countyindustrylevel.dta", path)
+  download.file(url,destfile)
+  unzip(zipfile = destfile, exdir = path)
+  dd <- setDT(foreign::read.dta(file=unzipped))
+  dd <- unique(dd[,.(naics,industry,indcat)])
+  dd[, naics := readr::parse_number(naics)]
+  setnames(dd,'indcat','tradable')
+  dd <- dd[tradable %in% c('tradable','non-tradable')][order(naics)]
+  write.csv(dd,file=sprintf("%sMianSufi2014_tradables.csv",output_path),row.names=F)
+  
+}
+
