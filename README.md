@@ -26,7 +26,12 @@ library(EconData)
 Data sets currently available include:
 
   - [State corporate tax
-    rates, 2000-2020.](https://github.com/setzler/EconData/tree/master/DataRepo/StateCorpTax/)
-  - [Census CBP employment, earnings, and establishments at various
-    levels of
-    aggregation, 2001-2017.](https://github.com/setzler/EconData/tree/master/DataRepo/CensusCBP/)
+    rates](https://github.com/setzler/EconData/tree/master/DataRepo/StateCorpTax/),
+    covering all states during 2000-2020.
+  - [Census
+    CBP](https://github.com/setzler/EconData/tree/master/DataRepo/CensusCBP/)
+    employment, earnings, and establishments at various levels of
+    aggregation,
+    2001-2017.
+  - [Miscellaneous](https://github.com/setzler/EconData/tree/master/DataRepo/Miscellaneous/)
+    cross-walks, distances, and industry classifications.

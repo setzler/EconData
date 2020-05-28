@@ -23,7 +23,7 @@ Included files and functions include:
   - `distances/county_distance_100miles.csv`,
     `distances/CZ_distance_100miles.csv`, and
     `distances/state_distance_100miles.csv`: Using county-to-county
-    distances of up to 100 miles, it forms the minimum between counties,
-    commuting zones, and states, respectively. Any pairs not included
-    are over 100 miles apart. When `getDistances()` is run, it downloads
-    and cleans the distances the NBER data repository.
+    distances of up to 100 miles, it forms the minimum distance between
+    counties, commuting zones, and states, respectively. Any pairs not
+    included are over 100 miles apart. When `getDistances()` is run, it
+    downloads and cleans the distances from the NBER data repository.
