@@ -26,4 +26,18 @@ Included files and functions include:
     distances of up to 100 miles, it forms the minimum distance between
     counties, commuting zones, and states, respectively. Any pairs not
     included are over 100 miles apart. When `getDistances()` is run, it
-    downloads and cleans the distances from the NBER data repository.
+    downloads and cleans the distances from the [NBER data
+    repository](https://data.nber.org/distance/2000/sf1/county/).
+
+  - `FRED_CPI.csv`: Total all items CPI from
+    [FRED](https://fred.stlouisfed.org/series/CPALTT01USA661S) covering
+    1960-2020, measured on January 1 of each year. When `getCPI()` is
+    run, it downloads and cleans the CPI from the FED website.
+
+  - `BEA_GDP.csv`: Annual GDP from
+    [BEA](https://apps.bea.gov/regional/downloadzip.cfm) covering
+    1960-2020, measured on January 1 of each year. When `getGDP()` is
+    run, it downloads and cleans the GDP from the BEA website,
+    aggregating to the CZ by 2-digit NAICS level. Warning: BEA only
+    reports NAICS supersectors, e.g., manufacturing codes 31-33 are
+    grouped together and coded as 31.
