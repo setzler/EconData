@@ -1,6 +1,6 @@
 
 #' Download and prepare commuting zone data
-#' @params output_path (character)
+#' @param output_path (character)
 #' @export
 getCZ <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
   
@@ -20,7 +20,7 @@ getCZ <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
 }
 
 #' Download and prepare state FIPS codes
-#' @params output_path (character)
+#' @param output_path (character)
 #' @export
 getStateFips <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
   
@@ -39,8 +39,8 @@ getStateFips <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous
 
 
 #' Download county distances
-#' @params miles
-#' @params output_path (character)
+#' @param miles (integer)
+#' @param output_path (character)
 #' @export
 getCountyDistances <- function(miles=100, output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
   
@@ -60,8 +60,8 @@ getCountyDistances <- function(miles=100, output_path = "~/github/EconData/DataR
 
 
 #' CZ distance
-#' @params miles
-#' @params output_path (character)
+#' @param miles (integer)
+#' @param output_path (character)
 #' @export
 buildCZDistance <- function(miles=100, output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
   
@@ -91,8 +91,8 @@ buildCZDistance <- function(miles=100, output_path = "~/github/EconData/DataRepo
 }
 
 #' State distance
-#' @params miles
-#' @params output_path (character)
+#' @param miles (integer)
+#' @param output_path (character)
 #' @export
 buildStateDistance <- function(miles=100, output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
   
@@ -116,8 +116,8 @@ buildStateDistance <- function(miles=100, output_path = "~/github/EconData/DataR
 
 
 #' Get all distances
-#' @params miles
-#' @params output_path (character)
+#' @param miles (integer)
+#' @param output_path (character)
 #' @export
 getDistances <- function(miles=100, output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
   
@@ -130,7 +130,7 @@ getDistances <- function(miles=100, output_path = "~/github/EconData/DataRepo/Mi
 
 
 #' Download and prepare tradables data
-#' @params output_path (character)
+#' @param output_path (character)
 #' @export
 getTradables <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
   
@@ -148,4 +148,58 @@ getTradables <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous
   write.csv(dd,file=sprintf("%sMianSufi2014_tradables.csv",output_path),row.names=F)
   
 }
+
+#' Download and prepare FRED CPI data (measured on January 1)
+#' @param output_path (character)
+#' @export
+getCPI <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
+  
+  # https://fred.stlouisfed.org/series/CPALTT01USA661S
+  path <- tempdir()
+  url <- "https://fred.stlouisfed.org/graph/fredgraph.csv?bgcolor=%23e1e9f0&chart_type=line&drp=0&fo=open%20sans&graph_bgcolor=%23ffffff&height=450&mode=fred&recession_bars=on&txtcolor=%23444444&ts=12&tts=12&width=748&nt=0&thu=0&trc=0&show_legend=yes&show_axis_titles=yes&show_tooltip=yes&id=CPALTT01USA661S&scale=left&cosd=1960-01-01&coed=2020-01-01&line_color=%234572a7&link_values=false&line_style=solid&mark_type=none&mw=3&lw=2&ost=-99999&oet=99999&mma=0&fml=a&fq=Annual&fam=avg&fgst=lin&fgsnd=2020-01-01&line_index=1&transformation=lin&vintage_date=2021-03-16&revision_date=2021-03-16&nd=1960-01-01"
+  destfile <- sprintf("%s/FRED_CPI.csv", path)
+  download.file(url, destfile)
+  cpi <- setDT(read.csv(file=destfile))
+  cpi <- cpi[, year := as.integer(substr(DATE,1,4))][, DATE := NULL][, cpi := CPALTT01USA661S/100][,list(year,cpi,cpi_factor=1/cpi)]
+  write.csv(cpi,file=sprintf("%sFRED_CPI.csv",output_path),row.names=F)
+  
+}
+
+
+#' Download and prepare BEA GDP data, collapsed by CZ and NAICS-2
+#' @param output_path (character)
+#' @export
+getGDP <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
+  
+  path <- tempdir()
+  url <- "https://apps.bea.gov/regional/zip/CAGDP2.zip"
+  destfile <- sprintf("%s/BEA_GDP.zip", path)
+  unzipped <- sprintf("%s/CAGDP2__ALL_AREAS_2001_2019.csv", path)
+  download.file(url,destfile)
+  unzip(zipfile = destfile, exdir = path)
+  dd <- setDT(read.csv(file=unzipped))
+  
+  dd <- dd[IndustryClassification  %in% c('11','21','22','23','31-33','42','44-45','48-49','51','52','53','54','55','56','61','62','71','72','81')]
+  dd[, fips3 := substr(GeoFIPS, 4,6)]
+  dd <- dd[fips3 != '000']
+  setnames(dd,c('IndustryClassification','GeoFIPS'),c('naics','fips'))
+  dd[, TableName := NULL][, Unit := NULL][, GeoName := NULL][, Region := NULL][, LineCode := NULL][, Description := NULL][, fips3 := NULL]
+  dd[naics=='31-33', naics := '31']
+  dd[naics=='44-45', naics := '44']
+  dd[naics=='48-49', naics := '48']
+  dd[, naics := as.integer(as.character(naics))]
+  dd <- melt(dd,id.vars = c('fips','naics'))
+  dd[, year := as.integer(substr(variable,2,5))][,variable := NULL]
+  dd[, state_fips := as.integer(as.character(substr(fips,1,3)))]
+  dd[, county_fips := as.integer(as.character(substr(fips,4,6)))]
+  dd[, value := as.numeric(as.character(value))]
+  dd[, fips := NULL]
+  cz <- setDT(read.csv('~/github/EconData/DataRepo/Miscellaneous/cz_crosswalk_2000.csv'))
+  dd <- merge(dd,cz,by=c('state_fips','county_fips'))
+  dd <- dd[,list(log_gdp = log(sum(value,na.rm=T))),list(year,industry=naics,location=cz)][!is.infinite(log_gdp) & !is.na(log_gdp)]
+  
+  write.csv(dd,file=sprintf("%sBEA_GDP.csv",output_path),row.names=F)
+  
+}
+
 

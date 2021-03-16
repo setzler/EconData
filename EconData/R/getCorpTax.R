@@ -1,6 +1,7 @@
 
 
 #' Download and manually correct corporate tax rate data
+#' @param source_file (character)
 #' @export
 getStateCorpTax <- function(source_file){
   
@@ -146,7 +147,7 @@ getStateCorpTax <- function(source_file){
 
 
 #' Download corporate tax rate data from various sources
-#' @params source_path (character)
+#' @param source_path (character)
 #' @export
 getCorpTaxSources <- function(source_path){
 

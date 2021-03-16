@@ -1,7 +1,7 @@
 
 #' Download CBP data
-#' @params years (integer) any integer between 2000 and 2017 is supported.
-#' @params location (character) options are "county", "state", "national".
+#' @param years (integer) any integer between 2000 and 2017 is supported.
+#' @param location (character) options are "county", "state", "national".
 #' @export
 downloadCBP <- function(years = 2017, location = "national", output_path) {
   
@@ -102,10 +102,10 @@ downloadCBP <- function(years = 2017, location = "national", output_path) {
 
 
 #' Prepare CBP data
-#' @params years (integer) any integer between 2000 and 2017 is supported.
-#' @params location (character) options are "county", "state", "national".
-#' @params industry (integer) options are 0, 2, 3, 4, 6.
-#' @params LFO (character) legal form of organization.
+#' @param years (integer) any integer between 2000 and 2017 is supported.
+#' @param location (character) options are "county", "state", "national".
+#' @param industry (integer) options are 0, 2, 3, 4, 6.
+#' @param LFO (character) legal form of organization.
 #' @export
 getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-", input_path, output_path) {
 

@@ -9,4 +9,4 @@ License: MIT
 Encoding: UTF-8
 Imports: data.table, futile.logger, checkmate, ggplot2, scales, tidyr, readstata13, openxlsx, stringr, readr
 LazyData: true
-RoxygenNote: 7.0.0
+RoxygenNote: 7.1.1
