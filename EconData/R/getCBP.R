@@ -1,16 +1,16 @@
 
 #' Download CBP data
-#' @param years (integer) any integer between 2000 and 2017 is supported.
+#' @param years (integer) any integer between 2001 and 2019 is supported.
 #' @param location (character) options are "county", "state", "national".
 #' @export
-downloadCBP <- function(years = 2017, location = "national", output_path) {
+downloadCBP <- function(years = 2019, location = "national", input_path) {
   
   ## check inputs
   if (!(location %in% c("national", "state", "county"))) {
     stop(sprintf("location=%s is not available.", location))
   }
   for (year in years) {
-    if (year < 2001 | year > 2017) {
+    if (year < 2001 | year > 2019) {
       stop(sprintf("year=%s is not yet available.", year))
     }
   }
@@ -20,7 +20,7 @@ downloadCBP <- function(years = 2017, location = "national", output_path) {
     agg <- "st"
     main_varnames <- c("fipstate", "naics", "emp", "est", "qp1")
     uppercase_years <- 2015
-    LFO_years <- 2010:2017
+    LFO_years <- 2010:2019
     upperC_years <- 0
   }
   if (location == "county") {
@@ -35,7 +35,7 @@ downloadCBP <- function(years = 2017, location = "national", output_path) {
     main_varnames <- c("naics", "emp", "est", "qp1")
     uppercase_years <- c(2006, 2015)
     upperC_years <- 2002:2009
-    LFO_years <- 2008:2017
+    LFO_years <- 2008:2019
   }
   
 
@@ -52,17 +52,17 @@ downloadCBP <- function(years = 2017, location = "national", output_path) {
       varnames <- toupper(varnames)
     }
     if (year %in% upperC_years) {
-      extractfile <- sprintf("%s/Cbp%s%s.txt", output_path, year_sub, agg)
+      extractfile <- sprintf("%s/Cbp%s%s.txt", input_path, year_sub, agg)
     } else {
-      extractfile <- sprintf("%s/cbp%s%s.txt", output_path, year_sub, agg)
+      extractfile <- sprintf("%s/cbp%s%s.txt", input_path, year_sub, agg)
     }
     
     ## set up download from CBP website
     url <- sprintf("https://www2.census.gov/programs-surveys/cbp/datasets/%s/cbp%s%s.zip", year, year_sub, agg)
-    destfile <- sprintf("%s/CBP_%s.zip", output_path, year)
+    destfile <- sprintf("%s/CBP_%s.zip", input_path, year)
     if (location == "national" & year <= 2007) {
       url <- sprintf("https://www2.census.gov/programs-surveys/cbp/datasets/%s/cbp%s%s.txt", year, year_sub, agg)
-      destfile <- sprintf("%s/CBP_%s.txt", output_path, year)
+      destfile <- sprintf("%s/CBP_%s.txt", input_path, year)
     }
     
     ## download
@@ -74,7 +74,7 @@ downloadCBP <- function(years = 2017, location = "national", output_path) {
       ddin <- setDT(fread(destfile, select = varnames))
       file.remove(destfile)
     } else {
-      unzip(zipfile = destfile, exdir = output_path)
+      unzip(zipfile = destfile, exdir = input_path)
       file.remove(destfile)
       ddin <- setDT(fread(extractfile, select = varnames))
       file.remove(extractfile)
@@ -94,7 +94,7 @@ downloadCBP <- function(years = 2017, location = "national", output_path) {
     ddin[employment_march == 0, employment_march := NA]
     ddin[payroll_quarter1 == 0, payroll_quarter1 := NA]
     
-    saveRDS(ddin, file = sprintf("%s/CBP_%s_%s.rds", output_path, location, year), compress=F)
+    saveRDS(ddin, file = sprintf("%s/CBP_%s_%s.rds", input_path, location, year), compress=F)
     
   }
   
@@ -102,12 +102,12 @@ downloadCBP <- function(years = 2017, location = "national", output_path) {
 
 
 #' Prepare CBP data
-#' @param years (integer) any integer between 2000 and 2017 is supported.
+#' @param years (integer) any integer between 2001 and 2019 is supported.
 #' @param location (character) options are "county", "state", "national".
 #' @param industry (integer) options are 0, 2, 3, 4, 6.
 #' @param LFO (character) legal form of organization.
 #' @export
-getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-", input_path, output_path) {
+getCBP <- function(years = 2019, location = "national", industry = 0, LFO = "-", input_path, output_path) {
 
   ## check inputs
   if (!(location %in% c("national", "state", "county"))) {
@@ -117,7 +117,7 @@ getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-",
     stop(sprintf("location=%s is not available.", location))
   }
   for (year in years) {
-    if (year < 2001 | year > 2017) {
+    if (year < 2001 | year > 2019) {
       stop(sprintf("year=%s is not yet available through the EconData package.", year))
     }
   }
@@ -127,7 +127,7 @@ getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-",
     agg <- "st"
     main_varnames <- c("fipstate", "naics", "emp", "est", "qp1")
     uppercase_years <- 2015
-    LFO_years <- 2010:2017
+    LFO_years <- 2010:2019
     upperC_years <- 0
   }
   if (location == "county") {
@@ -142,7 +142,7 @@ getCBP <- function(years = 2017, location = "national", industry = 0, LFO = "-",
     main_varnames <- c("naics", "emp", "est", "qp1")
     uppercase_years <- c(2006, 2015)
     upperC_years <- 2002:2009
-    LFO_years <- 2008:2017
+    LFO_years <- 2008:2019
   }
 
   if (LFO != "-") {

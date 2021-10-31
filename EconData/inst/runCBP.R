@@ -1,33 +1,36 @@
-
+# required packages
 library(EconData)
 library(futile.logger)
 library(data.table)
 
+# global parameters
 output_path <- "~/github/EconData/DataRepo/CensusCBP"
 input_path <- "~/github/EconData/DataRepo/CensusCBP/raw"
 misc_path <- "~/github/EconData/DataRepo/Miscellaneous"
+the_year_set <- 2001:2019
 
 
-
+# download the files
 runDownloads <- function(){
-  downloadCBP(years = 2001:2017, location = "national", output_path = input_path)
-  downloadCBP(years = 2001:2017, location = "county", output_path = input_path)
+  downloadCBP(years = the_year_set, location = "national", input_path = input_path)
+  downloadCBP(years = the_year_set, location = "county", input_path = input_path)
 }
+runDownloads()
 
+# clean the downloads
 cleanDownloads <- function(){
   for (ind in c(0, 2, 3, 4, 6)) {
     for (loc in c("national", "county")) {
-      getCBP(years = 2001:2017, location = "national", industry = ind, LFO = "-", input_path = input_path, output_path = output_path)
-      if(ind <= 4){
-        getCBP(years = 2001:2017, location = "county", industry = ind, LFO = "-", input_path = input_path, output_path = output_path)
+      if(loc=='national' | ind <= 4){
+        getCBP(years = the_year_set, location = loc, industry = ind, LFO = "-", input_path = input_path, output_path = output_path)
       }
     }
   }
 }
+cleanDownloads()
 
 
-# CZ and state collapses
-
+# perform the CZ and state collapses
 state_names <- setDT(read.csv(file=sprintf("%s/state_fips_crosswalk.csv",misc_path)))
 cz <- setDT(read.csv(file=sprintf("%s/cz_crosswalk_2000.csv",misc_path)))
 loc = 'county'
@@ -67,6 +70,4 @@ for (ind in c(0, 2, 3, 4, 6)) {
     file.remove(sprintf("%s/CBP_%s_industry%s.csv", output_path, loc, ind))
   }
 }
-
-
 
