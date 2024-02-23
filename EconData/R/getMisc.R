@@ -203,3 +203,17 @@ getGDP <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
 }
 
 
+#' Download and prepare BEA GDP data, collapsed by CZ and NAICS-2
+#' @param output_path (character)
+#' @export
+getSectorNames <- function(output_path = "~/github/EconData/DataRepo/Miscellaneous/"){
+
+  sector_names <- data.table(
+    naics = c(11, 21, 22, 23, 31, 42, 44, 48, 51, 52, 53, 54, 55, 56, 61, 62, 71, 72, 81, 95, 99),
+    sector = c("Agriculture, Forestry, Fishing and Hunting", "Mining, Quarrying, and Oil and Gas Extraction", "Utilities", "Construction", "Manufacturing", "Wholesale Trade", "Retail Trade", "Transportation and Warehousing", "Information", "Finance and Insurance", "Real Estate and Rental and Leasing", "Professional, Scientific, and Technical Services", "Management of Companies and Enterprises", "Administrative and Support Services", "Educational Services", "Health Care and Social Assistance", "Arts, Entertainment, and Recreation", "Accommodation and Food Services", "Other Services (except Public Administration)", "Public Administration", "Unclassified")
+  )
+
+  sector_names[, supersector := c("Agriculture and Mining", "Agriculture and Mining", "Trade, Transportation, and Utilities", "Construction", "Manufacturing", "Trade, Transportation, and Utilities", "Trade, Transportation, and Utilities", "Trade, Transportation, and Utilities", "Information", "Financial Activities", "Financial Activities", "Professional and Business Services", "Professional and Business Services", "Professional and Business Services", "Education and Health Services", "Education and Health Services", "Leisure and Hospitality", "Leisure and Hospitality", "Other Services", "Public Administration", "Unclassified")]
+
+  write.csv(sector_names,file=sprintf("%ssector_names.csv",output_path),row.names=FALSE)
+}

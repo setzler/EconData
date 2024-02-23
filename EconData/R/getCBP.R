@@ -10,7 +10,7 @@ downloadCBP <- function(years = 2019, location = "national", input_path) {
     stop(sprintf("location=%s is not available.", location))
   }
   for (year in years) {
-    if (year < 2001 | year > 2019) {
+    if (year < 2001 | year > 2021) {
       stop(sprintf("year=%s is not yet available.", year))
     }
   }
@@ -35,7 +35,7 @@ downloadCBP <- function(years = 2019, location = "national", input_path) {
     main_varnames <- c("naics", "emp", "est", "qp1")
     uppercase_years <- c(2006, 2015)
     upperC_years <- 2002:2009
-    LFO_years <- 2008:2019
+    LFO_years <- 2008:2021
   }
   
 
@@ -94,7 +94,7 @@ downloadCBP <- function(years = 2019, location = "national", input_path) {
     ddin[employment_march == 0, employment_march := NA]
     ddin[payroll_quarter1 == 0, payroll_quarter1 := NA]
     
-    saveRDS(ddin, file = sprintf("%s/CBP_%s_%s.rds", input_path, location, year), compress=F)
+    saveRDS(ddin, file = sprintf("%s/CBP_%s_%s.rds", input_path, location, year), compress=TRUE)
     
   }
   
@@ -117,7 +117,7 @@ getCBP <- function(years = 2019, location = "national", industry = 0, LFO = "-",
     stop(sprintf("location=%s is not available.", location))
   }
   for (year in years) {
-    if (year < 2001 | year > 2019) {
+    if (year < 2001 | year > 2021) {
       stop(sprintf("year=%s is not yet available through the EconData package.", year))
     }
   }
@@ -127,7 +127,7 @@ getCBP <- function(years = 2019, location = "national", industry = 0, LFO = "-",
     agg <- "st"
     main_varnames <- c("fipstate", "naics", "emp", "est", "qp1")
     uppercase_years <- 2015
-    LFO_years <- 2010:2019
+    LFO_years <- 2010:2021
     upperC_years <- 0
   }
   if (location == "county") {
@@ -142,7 +142,7 @@ getCBP <- function(years = 2019, location = "national", industry = 0, LFO = "-",
     main_varnames <- c("naics", "emp", "est", "qp1")
     uppercase_years <- c(2006, 2015)
     upperC_years <- 2002:2009
-    LFO_years <- 2008:2019
+    LFO_years <- 2008:2021
   }
 
   if (LFO != "-") {
@@ -213,8 +213,8 @@ getCBP <- function(years = 2019, location = "national", industry = 0, LFO = "-",
   }
 
   if (industry > 0) {
-    write.csv(dd_output, file = sprintf("%s/CBP_%s_industry%s.csv", output_path, location, industry), row.names = F)
+    write.csv(dd_output, file = sprintf("%s/CBP_%s_industry%s.csv", output_path, location, industry), row.names = FALSE)
   } else {
-    write.csv(dd_output, file = sprintf("%s/CBP_%s_total.csv", output_path, location), row.names = F)
+    write.csv(dd_output, file = sprintf("%s/CBP_%s_total.csv", output_path, location), row.names = FALSE)
   }
 }

@@ -1,6 +1,6 @@
 ---
 title: "Miscellaneous Public Data Sets"
-author: Created by Bradley Setzler, University of Chicago
+author: Created by Bradley Setzler, Pennsylvania State University
 output: github_document
 ---
 
@@ -34,6 +34,7 @@ Included files and functions include:
 
 - `BEA_GDP.csv`: Annual GDP from [BEA](https://apps.bea.gov/regional/downloadzip.cfm) covering 1960-2020, measured on January 1 of each year. When `getGDP()` is run, it downloads and cleans the GDP from the BEA website, aggregating to the CZ by 2-digit NAICS level. Warning: BEA only reports NAICS supersectors, e.g., manufacturing codes 31-33 are grouped together and coded as 31.
 
+- `sector_names.csv`: Names of NAICS sectors and supersectors from [BLS](https://www.bls.gov/sae/additional-resources/naics-supersectors-for-ces-program.htm). When `getSectorNames()` is run, it creates this file.
 
 
 
